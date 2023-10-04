@@ -6,52 +6,57 @@
 
 void print_elf_header(const Elf64_Ehdr *header);
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
+int main(int argc, char *argv[])
+{
+    if (argc != 2)
+    {
         fprintf(stderr, "Usage: %s elf_filename\n", argv[0]);
         return 98;
-    }
+        }
+        // Open the ELF file
+        int fd = open(argv[1], O_RDONLY);
+        if (fd == -1)
+        {
+            perror("Error opening file");
+            return 98;
+            }
+            // Read the ELF header
+            Elf64_Ehdr header;
+            if (read(fd, &header, sizeof(header)) != sizeof(header))
+            {
+                perror("Error reading ELF header");
+                close(fd);
+                return 98;
+                }
 
-    // Open the ELF file
-    int fd = open(argv[1], O_RDONLY);
-    if (fd == -1) {
-        perror("Error opening file");
-        return 98;
-    }
+                // Check if it's a valid ELF file
+                if (header.e_ident[EI_MAG0] != ELFMAG0 || header.e_ident[EI_MAG1] != ELFMAG1 ||
+                header.e_ident[EI_MAG2] != ELFMAG2 || header.e_ident[EI_MAG3] != ELFMAG3)
+                {
+                    fprintf(stderr, "Error: Not an ELF file\n");
+                    close(fd);
+                    return 98;
+                    }
 
-    // Read the ELF header
-    Elf64_Ehdr header;
-    if (read(fd, &header, sizeof(header)) != sizeof(header)) {
-        perror("Error reading ELF header");
-        close(fd);
-        return 98;
-    }
+                    // Print the ELF header information
+                    print_elf_header(&header);
 
-    // Check if it's a valid ELF file
-    if (header.e_ident[EI_MAG0] != ELFMAG0 || header.e_ident[EI_MAG1] != ELFMAG1 ||
-        header.e_ident[EI_MAG2] != ELFMAG2 || header.e_ident[EI_MAG3] != ELFMAG3) {
-        fprintf(stderr, "Error: Not an ELF file\n");
-        close(fd);
-        return 98;
-    }
+                    close(fd);
+                    return 0;
+                    }
 
-    // Print the ELF header information
-    print_elf_header(&header);
-
-    close(fd);
-    return 0;
-}
-
-void print_elf_header(const Elf64_Ehdr *header) {
+void print_elf_header(const Elf64_Ehdr *header)
+{
     printf("ELF Header:\n");
     printf("  Magic: ");
-    for (int i = 0; i < EI_NIDENT; i++) {
+    for (int i = 0; i < EI_NIDENT; i++)
+    {
         printf("%02x ", header->e_ident[i]);
-    }
-    printf("\n");
-
-    printf("  Class:                              ");
-    switch (header->e_ident[EI_CLASS]) {
+        }
+        printf("\n");
+        printf("  Class:                              ");
+        switch (header->e_ident[EI_CLASS])
+        {
         case ELFCLASS32:
             printf("ELF32\n");
             break;
@@ -79,7 +84,8 @@ void print_elf_header(const Elf64_Ehdr *header) {
     printf("  Version:                            %d (current)\n", header->e_ident[EI_VERSION]);
 
     printf("  OS/ABI:                             ");
-    switch (header->e_ident[EI_OSABI]) {
+    switch (header->e_ident[EI_OSABI])
+    {
         case ELFOSABI_NONE:
             printf("UNIX - System V\n");
             break;
@@ -94,7 +100,8 @@ void print_elf_header(const Elf64_Ehdr *header) {
     printf("  ABI Version:                        %d\n", header->e_ident[EI_ABIVERSION]);
 
     printf("  Type:                               ");
-    switch (header->e_type) {
+    switch (header->e_type)
+    {
         case ET_NONE:
             printf("NONE (None)\n");
             break;
